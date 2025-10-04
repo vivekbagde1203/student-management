@@ -4,7 +4,7 @@ mvn clean install
 
 java -jar target/student-management-1.0.0.jar
 
-
+access url:-> http://localhost:8080.
 
 
 structure:
