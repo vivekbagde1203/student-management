@@ -6,6 +6,9 @@ java -jar target/student-management-1.0.0.jar
 
 access url:-> http://localhost:8080.
 
+docker build -t student-management:1.0 .
+docker run -d -p 8080:8080 student-management:1.0
+
 
 structure:
 
