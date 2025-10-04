@@ -8,7 +8,7 @@ pipeline {
     GIT_CRED_ID    = 'git-credential'                    // Jenkins credential (username/password or token)
     IMAGE_NAME     = "student-management"
     DOCKERHUB_REPO = "${DOCKERHUB_USER}/${IMAGE_NAME}"
-    CHART_PATH     = "projectmp/student-management"           // path to helm chart in repo
+    CHART_PATH     = "student-management"           // path to helm chart in repo
     ARGO_HELM      = "https://github.com/vivekbagde1203/projectmp.git"
   }
 
@@ -49,25 +49,46 @@ pipeline {
       }
     }
 
-    stage('Update Helm values & push') {
-      steps {
-        script {
-          // update values.yaml image.tag
-          sh """
-            git config user.email "jenkins@ci.local"
-            git config user.name "Jenkins CI"
-            git checkout ${ARGO_HELM}
-            sed -i  "s|repository: .*|repository: \"${DOCKERHUB_REPO}\"|" ${CHART_PATH}/values.yaml
-            sed -i  "s|tag: .*|tag: \"${IMAGE_TAG}\"|" ${CHART_PATH}/values.yaml
-            //yq eval -i '.image.repository = "${DOCKERHUB_REPO}"' ${CHART_PATH}/values.yaml
-            //yq eval -i '.image.tag = "${IMAGE_TAG}"' ${CHART_PATH}/values.yaml
-            git add ${CHART_PATH}/values.yaml
-            git commit -m "ci: bump ${IMAGE_NAME} image to ${IMAGE_TAG} (build ${env.BUILD_ID})" || echo "no changes to commit"
-            git push origin ${BRANCH}
-          """
+stage('Update Helm Chart') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'helm-repo-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+            sh """
+                # Clone the Helm chart repo
+                git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/vivekbagde1203/projectmp.git
+                cd projectmp/${CHART_PATH}
+
+                # Replace repository and tag in values.yaml
+                sed -i '' "s|repository: .*|repository: \\"${DOCKERHUB_REPO}\\"|" ${CHART_PATH}/values.yaml
+                sed -i '' "s|tag: .*|tag: \\"${IMAGE_TAG}\\"|" ${CHART_PATH}/values.yaml
+
+                git add ${CHART_PATH}/values.yaml
+                git commit -m "ci: bump ${IMAGE_NAME} image to ${IMAGE_TAG} (build ${BUILD_ID})" || echo "no changes to commit"
+                git push origin main
+            """
         }
-      }
     }
+}
+
+
+//    stage('Update Helm values & push') {
+//      steps {
+//        script {
+//          // update values.yaml image.tag
+//          sh """
+//            git config user.email "jenkins@ci.local"
+//            git config user.name "Jenkins CI"
+//            git checkout ${ARGO_HELM}
+//            sed -i  "s|repository: .*|repository: \"${DOCKERHUB_REPO}\"|" ${CHART_PATH}/values.yaml
+//            sed -i  "s|tag: .*|tag: \"${IMAGE_TAG}\"|" ${CHART_PATH}/values.yaml
+//            //yq eval -i '.image.repository = "${DOCKERHUB_REPO}"' ${CHART_PATH}/values.yaml
+//            //yq eval -i '.image.tag = "${IMAGE_TAG}"' ${CHART_PATH}/values.yaml
+//            git add ${CHART_PATH}/values.yaml
+//            git commit -m "ci: bump ${IMAGE_NAME} image to ${IMAGE_TAG} (build ${env.BUILD_ID})" || echo "no changes to commit"
+//            git push origin ${BRANCH}
+//          """
+//        }
+//      }
+//    }
 
     stage('Trigger ArgoCD Sync (optional)') {
       when {
