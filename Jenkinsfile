@@ -53,7 +53,8 @@ stage('Update Helm Chart') {
     steps {
         withCredentials([usernamePassword(credentialsId: 'helm-repo-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
             sh """
-                # Clone the Helm chart repo
+                git config user.email "jenkins@ci.local"
+                git config user.name "Jenkins CI"                # Clone the Helm chart repo
                 git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/vivekbagde1203/projectmp.git
                 cd projectmp/${CHART_PATH}
 
