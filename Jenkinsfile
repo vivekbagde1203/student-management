@@ -79,8 +79,8 @@ stage('Approve PR') {
     steps {
         withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GH_TOKEN')]) {
             sh """
-                gh auth login --with-token <<< \$GH_TOKEN
-                PR_NUMBER=\$(gh pr list --repo vivekbagde1203/projectmp --state open --json number --jq '.[0].number')
+                echo \$GH_TOKEN | gh auth login --with-token
+                PR_NUMBER=\$(gh pr list --repo vivekbagde1203/projectmp --head "PR-${IMAGE_TAG}" --state open --json number --jq '.[0].number')
                 gh pr review \$PR_NUMBER --approve --repo vivekbagde1203/projectmp
             """
         }
