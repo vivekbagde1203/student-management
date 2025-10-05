@@ -78,11 +78,15 @@ pipeline {
 stage('Approve PR') {
     steps {
         withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GH_TOKEN')]) {
-            sh """
-                echo \$GH_TOKEN | gh auth login --with-token
-                PR_NUMBER=\$(gh pr list --repo vivekbagde1203/projectmp --head "PR-${IMAGE_TAG}" --state open --json number --jq '.[0].number')
-                gh pr review \$PR_NUMBER --approve --repo vivekbagde1203/projectmp
-            """
+            sh '''
+              PR_URL=$(gh pr list --repo vivekbagde1203/projectmp --head "PR-${IMAGE_TAG}" --state open --json url --jq '.[0].url')
+              if [ -z "$PR_URL" ]; then
+                 gh pr create --repo vivekbagde1203/projectmp --head "PR-${IMAGE_TAG}" --base main --title "ci: bump image to ${IMAGE_TAG}" --body "Automated PR by Jenkins"
+                 PR_URL=$(gh pr list --repo vivekbagde1203/projectmp --head "PR-${IMAGE_TAG}" --state open --json url --jq '.[0].url')
+              fi
+              PR_NUMBER=$(gh pr view "$PR_URL" --json number --jq '.number')
+              gh pr review $PR_NUMBER --approve --repo vivekbagde1203/projectmp
+            '''
         }
     }
 }
