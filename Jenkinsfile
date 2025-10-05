@@ -70,7 +70,7 @@ pipeline {
                         git checkout -b "PR-${IMAGE_TAG}"
                         git add values.yaml
                         git commit -m "ci: bump image to ${IMAGE_TAG} (build ${BUILD_ID})" || echo "no changes to commit"
-                        git push origin "PR-${IMAGE_TAG}"
+                        git push origin "PR-${IMAGE_TAG}" -f
                     '''
                 }
             }
