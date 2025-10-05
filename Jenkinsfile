@@ -75,6 +75,17 @@ pipeline {
                 }
             }
         }
+stage('Approve PR') {
+    steps {
+        withCredentials([string(credentialsId: 'git-credentia', variable: 'GIT_TOKEN')]) {
+            sh '''
+                gh auth login --with-token <<< $GIT_TOKEN
+                PR_NUMBER=$(gh pr list --repo vivekbagde1203/projectmp --state open --json number --jq '.[0].number')
+                gh pr review $PR_NUMBER --approve --repo vivekbagde1203/projectmp
+            '''
+        }
+    }
+}
 
         //}
         stage("Cleanup Workspace"){
