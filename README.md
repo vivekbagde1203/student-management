@@ -34,3 +34,15 @@ student-management/
 ├── pom.xml
 └── README.md
 
+I have added jenkinsfile which will raise pull request so that manager can merge and it can deploy to argocd.
+
+OR
+
+We can directly push to master, below is the changes we will have to make.
+
+                        git config --global user.name "Jenkins CI" 
+                        git config --global user.email "jenkins@ci.local"
+                        git checkout -b "PR-${IMAGE_TAG}"               ###remove this line
+                        git add values.yaml
+                        git commit -m "ci: bump image to ${IMAGE_TAG} (build ${BUILD_ID})" || echo "no changes to commit"
+                        git push origin "PR-${IMAGE_TAG}"               ### this should be git push origin master
