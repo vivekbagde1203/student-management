@@ -67,10 +67,12 @@ pipeline {
                         
                         git config --global user.name "Jenkins CI" 
                         git config --global user.email "jenkins@ci.local"
-                        git checkout -b "PR-${IMAGE_TAG}"
+                        #git checkout -b "PR-${IMAGE_TAG}"
+                        git checkout master
                         git add values.yaml
                         git commit -m "ci: bump image to ${IMAGE_TAG} (build ${BUILD_ID})" || echo "no changes to commit"
-                        git push origin "PR-${IMAGE_TAG}" -f
+                        #git push origin "PR-${IMAGE_TAG}" -f
+                        git push origin master
                     '''
                 }
             }
